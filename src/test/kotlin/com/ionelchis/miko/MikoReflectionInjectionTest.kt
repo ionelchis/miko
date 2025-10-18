@@ -19,13 +19,16 @@ class MikoReflectionInjectionTest {
 
     @Test
     fun `should resolve generic types via reflection`() {
+        // Given
         moduleLoad {
             singleton { Serializer<User>("UserSerializer") }
         }
 
+        // When
         val repo by inject<Repository<User>>()
         val useCase by inject<UserUseCase>()
 
+        // Then
         assertEquals(repo.serializer.type, "UserSerializer")
         assertSame(repo, useCase.repo)
     }
