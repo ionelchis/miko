@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.ionelchis"
-version = "0.1.0"
+version = "0.1.1"
 
 repositories {
     mavenCentral()
@@ -35,7 +35,7 @@ publishing {
             from(components["java"])
             groupId = "com.github.ionelchis"
             artifactId = "miko"
-            version = "0.1.0"
+            version = "0.1.1"
             pom {
                  name.set("Miko")
                 description.set("A lightweight, reflection-based dependency injection library for Kotlin.")
@@ -53,6 +53,7 @@ publishing {
                     }
                 }
             }
+            artifact(tasks["jar"])
         }
     }
 }
