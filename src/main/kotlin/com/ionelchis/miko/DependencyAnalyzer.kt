@@ -1,11 +1,56 @@
 package com.ionelchis.miko
 
+import com.ionelchis.miko.annotation.ExperimentalMikoApi
 import com.ionelchis.miko.ext.substitute
 import com.ionelchis.miko.model.TypeKey
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
+/**
+ * A static analysis tool for detecting dependency graph issues within the [Miko] DI container.
+ *
+ * This analyzer performs a recursive traversal of all known bindings and auto-constructible
+ * dependencies, starting from a given root [TypeKey]. It detects:
+ *
+ * 1. **Missing dependencies** — when a class requires another dependency that has
+ *    no registered provider and cannot be auto-constructed.
+ * 2. **Cyclic dependencies** — when a set of components depend on each other in
+ *    a circular manner (e.g., `A -> B -> A`).
+ *
+ * The analysis does not instantiate anything; it uses only reflection and the
+ * registered container bindings in [Miko].
+ *
+ * ### Example
+ * ```kotlin
+ * data class Engine(val fuelPump: FuelPump)
+ * data class FuelPump(val sensor: Sensor)
+ * data class Sensor(val engine: Engine) // <-- cycle
+ *
+ * val result = DependencyAnalyzer.analyze(typeKey<Engine>())
+ *
+ * println(result.cycles.size) // 1
+ * println(result.missingDependencies) // empty
+ * ```
+ *
+ * ### Implementation details
+ * - The analyzer uses a DFS traversal strategy.
+ * - It caches constructors using [Miko.constructorCache] for performance.
+ * - Cycle detection is based on a pair of sets: `visiting` (active recursion stack)
+ *   and `visited` (fully analyzed nodes).
+ * - Generic parameter substitution is performed via `KType.substitute`.
+ *
+ * @see AnalysisResult for the output model containing missing dependencies and cycles.
+ */
+@ExperimentalMikoApi
 object DependencyAnalyzer {
+    /**
+     * Holds the results of a dependency graph analysis.
+     *
+     * @property missingDependencies A list of [TypeKey]s that have no registered provider
+     * and cannot be auto-constructed.
+     * @property cycles A list of dependency cycles, where each cycle is represented
+     * as an ordered list of [TypeKey]s forming the cycle path.
+     */
     data class AnalysisResult(
         val missingDependencies: List<TypeKey<*>>,
         val cycles: List<List<TypeKey<*>>>,
