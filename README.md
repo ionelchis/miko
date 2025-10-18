@@ -39,7 +39,7 @@ dependencies {
 
 ## Example Usage
 
-# Initialization
+### Initialization
 Wrap dependencies in modules and start the initalization manually:
 ```kotlin
 // Define your dependencies
@@ -69,7 +69,7 @@ moduleLoad {
 }
 ```
 
-# Injection
+### Injection
 ```kotlin
 // Inject anywhere
 class UserService(
