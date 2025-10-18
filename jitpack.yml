@@ -6,7 +6,7 @@ before_install:
   - ./gradlew clean
 
 build:
-  - ./gradlew build publishToMavenLocal -x test
+  - ./gradlew clean build publishToMavenLocal -x test
 
 cache:
   paths:
