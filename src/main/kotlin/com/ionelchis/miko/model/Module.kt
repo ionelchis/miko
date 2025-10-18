@@ -3,11 +3,11 @@ package com.ionelchis.miko.model
 import com.ionelchis.miko.Miko
 
 /**
- * Represents a logical grouping of dependency bindings within the [com.ionelchis.miko.Miko] container.
+ * Represents a logical grouping of dependency bindings within the [Miko] container.
  *
  * A module encapsulates related dependencies (for example, all network-related
  * components or all view models) and provides an [initializer] block that registers
- * them into the container using the DSL provided by [com.ionelchis.miko.Miko].
+ * them into the container using the DSL provided by [Miko].
  *
  * Modules make it easy to structure large applications, separating dependency
  * definitions by feature or layer while keeping registration code clean and testable.
@@ -20,7 +20,7 @@ import com.ionelchis.miko.Miko
  * }
  * ```
  *
- * @property initializer A lambda with receiver of type [com.ionelchis.miko.Miko], which defines
+ * @property initializer A lambda with receiver of type [Miko], which defines
  * the dependency bindings to be registered when this module is loaded.
  *
  * @see module
@@ -58,6 +58,6 @@ fun module(initialize: Miko.() -> Unit): InjectionModule {
     return InjectionModule(initialize)
 }
 
-fun modulesInit(initialize: Miko.() -> Unit) {
-    Miko.initialize()
+fun moduleLoad(initialize: Miko.() -> Unit) {
+    Miko.loadModules(InjectionModule(initialize))
 }
