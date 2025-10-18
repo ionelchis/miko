@@ -16,6 +16,27 @@ It’s inspired by Koin, but designed with **full generic type support**, **lock
 
 ---
 
+## Dependency
+
+settings.gradle.kts:
+```kotlin
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+build.gradle.kts:
+```kotlin
+dependencies {
+    implementation("com.github.ionelchis:miko:0.1.2")
+}
+```
+
+
 ## Example Usage
 
 Wrap dependencies in modules and start the initalization manually:
