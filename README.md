@@ -39,6 +39,7 @@ dependencies {
 
 ## Example Usage
 
+# Initialization
 Wrap dependencies in modules and start the initalization manually:
 ```kotlin
 // Define your dependencies
@@ -48,26 +49,32 @@ val userModule = module {
     singleton { UserService(get()) }
 }
 
+val validationModule = module {
+    factory<Validator<Email>> { EmailValidator() }
+    //...
+}
+
 // At startup
-Miko.init(userModule)
+Miko.loadModules(userModule, validationModule)
 ```
 
 **OR**
 
 Initialize the dependencies directly from anywhere, without the modules wrapper:
 ```kotlin
-modulesInit {
+moduleLoad {
     singleton { HttpClient() }
     factory<Repository<User>> { UserRepository(get()) }
     singleton { UserService(get()) }
 }
 ```
 
+# Injection
 ```kotlin
 // Inject anywhere
-class UserViewModel(
-    private val service: UserService
+class UserService(
+    private val repo: UserRepository
 )
 
 // Resolve manually or via delegation
-val viewModel: UserViewModel by inject()
+val service: UserService by inject()
