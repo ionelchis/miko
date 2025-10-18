@@ -3,7 +3,6 @@ package com.ionelchis.miko
 import com.ionelchis.miko.Miko.inject
 import com.ionelchis.miko.model.Qualifier
 import com.ionelchis.miko.model.module
-import com.ionelchis.miko.model.modulesInit
 import com.ionelchis.miko.model.typeKey
 
 interface Serializer<T> {
@@ -104,7 +103,7 @@ fun main() {
         }
     }
 
-    Miko.init(validatorModule)
+    Miko.loadModules(validatorModule)
 
     val passwordSerializer by inject<Serializer<String>>(Password)
     val emailSerializer by inject<Serializer<String>>(Email)

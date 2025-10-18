@@ -1,7 +1,7 @@
 package com.ionelchis.miko
 
 import com.ionelchis.miko.Miko.inject
-import com.ionelchis.miko.model.module
+import com.ionelchis.miko.model.moduleLoad
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -19,17 +19,15 @@ internal class MikoTest {
 
     @AfterTest
     fun after() {
-        Miko.clear()
+        Miko.unloadModules()
     }
 
     @Test
     fun `singleton returns instance`() {
         // Given
-        val module = module {
+        moduleLoad {
             singleton<Foo> { Foo() }
         }
-
-        Miko.init(module)
 
         // When
         val foo1 by inject<Foo>()

@@ -6,6 +6,7 @@ import com.ionelchis.miko.model.Provider
 import com.ionelchis.miko.model.Qualifier
 import com.ionelchis.miko.model.Scope
 import com.ionelchis.miko.model.TypeKey
+import com.ionelchis.miko.model.module
 import com.ionelchis.miko.model.typeKey
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.ReadOnlyProperty
@@ -14,21 +15,74 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.primaryConstructor
 
+/**
+ * **Miko** — A lightweight, reflection-based dependency injection container for Kotlin.
+ *
+ * Miko is inspired by Koin and designed to be simple, type-safe, and fully generic-aware.
+ * It supports constructor injection, scopes (Singleton / Factory), and qualifiers for
+ * multiple bindings of the same type.
+ *
+ * Unlike Koin, Miko uses Kotlin's [kotlin.reflect.KType] for internal type keys, meaning it can
+ * differentiate bindings such as `Serializer<User>` and `Serializer<Post>`.
+ *
+ * **Usage**: There are two main ways to initialize dependencies
+ *
+ * - Initialize modules and load them at app startup:
+ * ```
+ * val userModule = module {
+ *     singleton { HttpClient() }
+ *     factory { UserRepository(get()) }
+ * }
+ *
+ * // At app startup:
+ * Miko.loadModules(userModule)
+ *
+ * // Inject dependency where you need it
+ * val repo: UserRepository by inject()
+ * ```
+ *
+ * - Or initialize directly:
+ * ```
+ * moduleLoad {
+ *     singleton { HttpClient() }
+ *     factory { UserRepository(get()) }
+ * }
+ *
+ * // Inject dependency where you need it
+
+ * val repo: UserRepository by inject()
+ * ```
+ *
+ * @see module
+ * @see Scope
+ * @see Qualifier
+ */
 object Miko {
+    // region internal
     internal val container = ConcurrentHashMap<TypeKey<*>, Provider<*>>()
     internal val constructorCache = ConcurrentHashMap<KClass<*>, KFunction<*>>()
+    // endregion
 
-    fun init(vararg modules: InjectionModule) {
-        for (module in modules) {
+    // region private
+    private val loadedModules = mutableListOf<InjectionModule>()
+    private val logger: ((String) -> Unit)? = null
+    // endregion
+
+    @Synchronized
+    fun loadModules(vararg modules: InjectionModule) {
+        modules.forEach { module ->
+            loadedModules += module
             module.initializer(this)
         }
     }
 
-    internal fun clear() {
+    fun unloadModules() {
         container.clear()
         constructorCache.clear()
+        loadedModules.clear()
     }
 
+    // region binders
     fun <T> bind(
         key: TypeKey<T>,
         scope: Scope,
@@ -36,6 +90,12 @@ object Miko {
     ) {
         container[key] = Provider(scope, instantiator)
     }
+
+    inline fun <reified T> bind(
+        scope: Scope,
+        qualifier: Qualifier? = null,
+        noinline instantiator: () -> T,
+    ) = bind(typeKey<T>(qualifier), scope, instantiator)
 
     inline fun <reified T> factory(
         qualifier: Qualifier? = null,
@@ -47,13 +107,8 @@ object Miko {
         noinline instantiator: () -> T,
     ) = bind(Scope.Singleton, qualifier, instantiator)
 
-    inline fun <reified T> bind(
-        scope: Scope,
-        qualifier: Qualifier? = null,
-        noinline instantiator: () -> T,
-    ) = bind(typeKey<T>(qualifier), scope, instantiator)
-
     inline fun <reified T> get(qualifier: Qualifier? = null): T = resolver(qualifier)
+    // endregion
 
     @Suppress("UNCHECKED_CAST")
     fun <T> resolver(key: TypeKey<T>): T {
@@ -66,7 +121,10 @@ object Miko {
 
         val primaryConstructor = constructorCache.getOrPut(kClass) {
             kClass.primaryConstructor
-                ?: throw IllegalStateException("No primary constructor found for $kClass")
+                ?: throw IllegalStateException(
+                    "Cannot construct $kClass automatically. " +
+                            "No registered binding found and no primary constructor available."
+                )
         }
 
         // Build mapping of type parameters -> actual types
@@ -74,7 +132,7 @@ object Miko {
 
         // Build constructor parameters
         val parameters = primaryConstructor.parameters.also {
-            println("Reflection lookup")
+            logger?.invoke("Reflection lookup")
         }.map { parameter ->
             val substitutedType = parameter.type.substitute(substitution)
             resolver(TypeKey<Any>(substitutedType, key.qualifier))
