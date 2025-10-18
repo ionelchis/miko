@@ -1,0 +1,14 @@
+jdk:
+  - openjdk21
+
+before_install:
+  - chmod +x gradlew
+  - ./gradlew clean
+
+build:
+  - ./gradlew build publishToMavenLocal -x test
+
+cache:
+  paths:
+    - ~/.gradle/caches
+    - ~/.gradle/wrapper
