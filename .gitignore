@@ -62,3 +62,7 @@ kotlin-ide/
 .teamcity/
 .npmrc
 /.idea/AndroidProjectSystem.xml
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
