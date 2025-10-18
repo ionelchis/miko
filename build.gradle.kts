@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.github.ionelchis"
-version = "0.1.0-alpha02"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -28,37 +28,30 @@ kotlin {
     jvmToolchain(21)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-            groupId = "com.github.ionelchis"
-            artifactId = "miko"
-            version = version
-
-            pom {
-                name.set("Miko")
-                description.set("A lightweight, reflection-based dependency injection library for Kotlin.")
-                url.set("https://github.com/ionelchis/miko")
-
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
-
-                developers {
-                    developer {
-                        id.set("ionelchis")
-                        name.set("Ionel Chis")
-                    }
-                }
-
-                scm {
-                    connection.set("scm:git:git://github.com/ionelchis/miko.git")
-                    developerConnection.set("scm:git:ssh://github.com/ionelchis/miko.git")
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+                groupId = "com.github.ionelchis"
+                artifactId = "miko"
+                version = "0.1.0"
+                pom {
+                     name.set("Miko")
+                    description.set("A lightweight, reflection-based dependency injection library for Kotlin.")
                     url.set("https://github.com/ionelchis/miko")
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set("ionelchis")
+                            name.set("Ionel Chis")
+                        }
+                    }
                 }
             }
         }
